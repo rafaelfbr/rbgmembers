@@ -24,21 +24,38 @@ export function LoginForm() {
     setMessage(null)
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      // Verificar se o email existe no banco de dados
+      const { data: user, error: userError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", email)
+        .single()
+
+      if (userError) {
+        // Usuário não encontrado
+        setMessage({
+          type: "error",
+          text: "O email informado não existe entre os usuários. Por favor, verifique o email e tente novamente.",
+        })
+        setIsLoading(false)
+        return
+      }
+
+      // Se o usuário existe, criar uma sessão diretamente
+      const { data, error } = await supabase.auth.signInWithEmail({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/dashboard`,
         },
       })
 
       if (error) {
         throw error
       }
+      
+      // Redirecionar para o dashboard
+      window.location.href = "/dashboard"
 
-      setMessage({
-        type: "success",
-        text: "Enviamos um link de acesso para o seu e-mail. Por favor, verifique sua caixa de entrada.",
-      })
     } catch (error: any) {
       setMessage({
         type: "error",
@@ -53,7 +70,7 @@ export function LoginForm() {
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Login</CardTitle>
-        <CardDescription>Digite seu e-mail para receber um link de acesso</CardDescription>
+        <CardDescription>Digite seu e-mail usado na compra do Produto</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -80,7 +97,7 @@ export function LoginForm() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Enviando...
+                Verificando...
               </>
             ) : (
               "Entrar"
@@ -88,9 +105,6 @@ export function LoginForm() {
           </Button>
         </form>
       </CardContent>
-      <CardFooter className="flex justify-center">
-        <p className="text-sm text-gray-500">Acesso exclusivo para membros</p>
-      </CardFooter>
     </Card>
   )
 }
