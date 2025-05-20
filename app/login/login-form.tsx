@@ -26,44 +26,14 @@ export function LoginForm() {
     setMessage(null)
 
     try {
-      // Verificar se o email existe na autenticação
-      const { data: { users }, error: userError } = await supabase.auth.admin.listUsers()
-      const user = users.find(u => u.email === email)
-      
-      // Se o usuário não existe na autenticação
-      if (!user) {
-        setMessage({
-          type: "error",
-          text: "O email informado não existe entre os usuários. Por favor, verifique o email e tente novamente.",
-        })
-        setIsLoading(false)
-        return
-      }
-      
-      // Verificar se existe um perfil para o usuário
+      // Buscar usuário pelo email diretamente na tabela 'profiles'
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("id")
-        .eq("id", user.id)
+        .eq("email", email)
         .single()
-      
-      // Se não existe perfil, criar um
-      if (profileError) {
-        const { error: createProfileError } = await supabase
-          .from("profiles")
-          .insert({
-            id: user.id,
-            email: email,
-            full_name: user.user_metadata?.name || ""
-          })
-        
-        if (createProfileError) {
-          throw createProfileError
-        }
-      }
 
-      if (userError) {
-        // Usuário não encontrado
+      if (profileError || !profile) {
         setMessage({
           type: "error",
           text: "O email informado não existe entre os usuários. Por favor, verifique o email e tente novamente.",
@@ -72,8 +42,8 @@ export function LoginForm() {
         return
       }
 
-      // Se o usuário existe, salva o ID no localStorage para controle de sessão local
-      localStorage.setItem("user_id", user.id)
+      // Salva o ID no localStorage para controle de sessão local
+      localStorage.setItem("user_id", profile.id)
 
       // Redirecionar para o dashboard usando o router do Next.js
       router.push("/dashboard")
