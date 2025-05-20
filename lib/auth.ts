@@ -2,12 +2,17 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
 export async function getSession() {
+  if (typeof window !== "undefined") {
+    const userId = localStorage.getItem("user_id")
+    if (userId) {
+      // Retorna um objeto de sessão fake para compatibilidade
+      return { user: { id: userId } }
+    }
+  }
   const supabase = createClient()
-
   const {
     data: { session },
   } = await supabase.auth.getSession()
-
   return session
 }
 
