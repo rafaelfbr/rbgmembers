@@ -10,12 +10,14 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
+  const router = useRouter()
   const supabase = createClient()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -44,8 +46,8 @@ export function LoginForm() {
       // Se o usuário existe, salva o ID no localStorage para controle de sessão local
       localStorage.setItem("user_id", user.id)
 
-      // Redirecionar para o dashboard
-      window.location.href = "/dashboard"
+      // Redirecionar para o dashboard usando o router do Next.js
+      router.push("/dashboard")
 
     } catch (error: any) {
       setMessage({
