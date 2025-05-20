@@ -41,18 +41,9 @@ export function LoginForm() {
         return
       }
 
-      // Se o usuário existe, criar uma sessão diretamente
-      const { data, error } = await supabase.auth.signInWithEmail({
-        email,
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      })
+      // Se o usuário existe, salva o ID no localStorage para controle de sessão local
+      localStorage.setItem("user_id", user.id)
 
-      if (error) {
-        throw error
-      }
-      
       // Redirecionar para o dashboard
       window.location.href = "/dashboard"
 
